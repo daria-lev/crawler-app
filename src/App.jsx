@@ -4,21 +4,57 @@ import viteLogo from '/vite.svg'
 import './App.css'
 
 function Tile() {
+  const [type, setType] = useState("bgtile");
 
   function handleClick() {
-    alert("clicked");
+    if (type == "bgtile") {
+      setType("wall");
+    } else if (type == "wall") {
+      setType("bgtile");
+    }
   }
 
   return (
     <button
-    className="tile"
+    className={type}
     onClick={handleClick}>
     </button>
   );
 }
 
+class BoardMaybe extends React.Component {
+  constructor(props) {
+    super(props);
+    this.reset();
+  }
+
+  reset() {
+    this.state = {
+      boardSize: [5,7]
+    };
+  }
+
+  createBoard() {
+    const board = []
+    for (var i = 0; i < boardSize[0]; i++) {
+      const row = []
+      for (var j = 0; j < boardSize[1]; j++) {
+        row.push(<Tile></Tile>) 
+      }
+      board.push(<div>{row}</div>)
+    }
+    return board
+  }
+
+  render() {
+    return(
+      <div>{createBoard()}</div>
+    ); 
+  }
+}
+
 function Board() {
-  const boardSize = [5, 7] //height, width
+  const [boardSize, setSize] = useState([5,7]) //height, width
   const canEdit = true
 
   function createBoard() {
@@ -26,7 +62,7 @@ function Board() {
     for (var i = 0; i < boardSize[0]; i++) {
       const row = []
       for (var j = 0; j < boardSize[1]; j++) {
-        row.push(<Tile></Tile>) // temporary, will have buttons?
+        row.push(<Tile></Tile>) 
       }
       board.push(<div>{row}</div>)
     }
@@ -40,28 +76,40 @@ function Board() {
 }
 
 function App() {
-  const items = ["pear", "banana"]
+  //const items = ["pear", "banana"]
+  const [height, setHeight] = useState("")
+  const [width, setWidth] = useState("")
   
 
   function handleSizeClick() {
     alert("change board size");
   }
 
+  function onWidthChange(){
+    setWidth()
+  }
+
+  function onHeightChange() {
+    
+  }
+
   function handleTileClick() {
     if (canEdit) {
 
     }
-  }
-
-  
+  } 
 
   return (
     <>
-      <button onClick={handleSizeClick}>Update Board Size</button>
-      <div>
-        <h1>Hello!</h1>
+      <div className="p-3">
+        <label className='inputLabel'>Width:</label>
+        <input type="number" onChange={onWidthChange}></input> 
+        <label className='inputLabel'>Height:</label>
+        <input type="number" onChange={onHeightChange}></input>
       </div>
-      <Board></Board>
+      <button style={{margin: '10px'}} onClick={handleSizeClick}>Update Board Size</button>
+      <div style={{margin: '20px'}}><Board></Board></div>
+      
     </>
   )
 }

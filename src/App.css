@@ -5,8 +5,8 @@
   text-align: center;
 }
 
-.tile {
-  background-color: gray;
+.bgtile {
+  background-color: lightgray;
   border: none;
   margin: 1px;
   border-radius: 0;
@@ -16,6 +16,37 @@
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
+}
+
+.wall {
+  background-color: black;
+  border: none;
+  margin: 1px;
+  border-radius: 0;
+  color: white;
+  padding: 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.crawler {
+  background-color: yellow;
+  border: none;
+  margin: 1px;
+  border-radius: 0;
+  color: white;
+  padding: 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.inputLabel {
+  margin-left: 10px;
+  margin-right: 5px;
 }
 
 /* .logo {
