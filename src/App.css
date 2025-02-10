@@ -5,8 +5,7 @@
   text-align: center;
 }
 
-.bgtile {
-  background-color: lightgray;
+.bgtile, .wall, .crawler, .seen {
   border: none;
   margin: 1px;
   border-radius: 0;
@@ -16,32 +15,23 @@
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
+}
+
+.bgtile {
+  background-color: lightgray;
+  
 }
 
 .wall {
   background-color: black;
-  border: none;
-  margin: 1px;
-  border-radius: 0;
-  color: white;
-  padding: 25px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
 }
 
 .crawler {
   background-color: yellow;
-  border: none;
-  margin: 1px;
-  border-radius: 0;
-  color: white;
-  padding: 25px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
+}
+
+.seen {
+  background-color: lightyellow;
 }
 
 .inputLabel {

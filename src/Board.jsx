@@ -4,21 +4,13 @@ import './App.css'
 function Tile(props) {
   const [type, setType] = useState("bgtile");
 
-  // useEffect(() => {
-  //   //alert("use effect")
-  //   if (props.reset) {
-  //     setType("bgtile");
-  //     //alert("reset")
-  //   }
-  // });
-
   function handleClick() {
     if (props.edit) {
-      if (type == "bgtile") {
-        setType("wall");
+      if (props.type == "bgtile") {
+        //setType("wall");
         props.onChange(props.id[0], props.id[1], "wall")
-      } else if (type == "wall") {
-        setType("bgtile");
+      } else if (props.type == "wall") {
+        //setType("bgtile");
         props.onChange(props.id[0], props.id[1], "bgtile")
       }
     }
@@ -26,7 +18,7 @@ function Tile(props) {
 
   return (
     <button
-    className={type}
+    className={props.type}
     onClick={handleClick}>
     </button>
   );
@@ -38,41 +30,113 @@ function Board() {
   //const [size, setSize] = useState([5,7])
   const [canEdit, setEditable] = useState(true)
   const [types, setTypes] = useState(defaultTypes(5, 7))
+  const [pause, setPause] = useState(true)
+  const [solverSave, setSolver] = useState([0, 0, 0, 1]) //i, j, ichange, jchange (which tile to look at)
   let widthVal = types[0].length
   let heightVal = types.length
+  let onPause = pause
+  let solver = solverSave
 
   function childChange(i, j, type) {
     const update = [...types]
     update[i][j] = type
     setTypes(update)
-    console.log(types)
+    //console.log(types)
   }
 
   function handleStartClick() {
-    setEditable(false)
+    if (types[0][0] === "bgtile" && types[types.length-1][types[0].length-1] === "bgtile") {
+      console.log("start click")
+      setEditable(false)
+      setPause(false)
+      onPause = false
+      solver = [0, 0, 0, 1]
+      setSolver(solver)
+      let newTypes = [...types]
+      types[0][0] = "crawler"
+      setTypes(newTypes)
+      takeStep()
+    }
+    // run solver
+  }
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  async function takeStep() {
+    console.log(onPause)
+    if (!onPause) {
+      console.log(solver)
+      let newX = solver[1] + solver[3] //horizontal
+      let newY = solver[0] + solver[2] // vert
+      console.log("checking " + newY + " " + newX)
+      console.log(newX < types[0].length)
+      if (newX < 0 || newX >= types[0].length || newY < 0 || newY >= types.length || 
+            types[solver[0]+solver[2]][solver[1]+solver[3]] === "wall") {
+        // turn
+        console.log("turn")
+        let newSolver = [...solver]
+        if (newSolver[2] === 0) {
+          newSolver[3] = 0
+          newSolver[2] = solver[3] * -1
+        } else {
+          newSolver[2] = 0
+          newSolver[3] = solver[2]
+        }
+        solver = newSolver
+        setSolver(newSolver)
+      } else {
+        // step
+        console.log("move")
+        let newTypes = [...types]
+        newTypes[solver[0]][solver[1]] = "seen"
+        newTypes[solver[0]+solver[2]][solver[1]+solver[3]] = "crawler"
+        solver = [solver[0]+solver[2], solver[1]+solver[3], solver[2], solver[3]]
+        setSolver(solver)
+        setTypes(newTypes)
+      }
+      if (solver[0] === 0 && solver[1] === 0 && solver[2] === 0 && solver[3] === 1) {
+        console.log("at start")
+        setPause(true) // back at start?
+      }
+      else if (solver[0] === types.length-1 && solver[1] === types[0].length-1) {
+        console.log("at end")
+        setPause(true) // at end
+      }
+      else {
+        //console.log("waiting")
+        await sleep(1000)
+        takeStep();
+      }      
+    }
   }
 
   function handleClearClick() {
-    // doClear = true
-    // setClear(true)
-    // doClear = false
-    // setClear(false)
-    // //doClear = false
-    // //setClear(false)
+    setEditable(true)
+    setPause(true)
+    onPause = true
+    setTypes(defaultTypes(types.length, types[0].length))
   }
 
   function handlePauseClick() {
-    //setClear(false)
+    // set solver pause to true?
+    setPause(true);
+    onPause = true
+    console.log("pause clicked " + onPause)
   }
 
   function handleContinueClick(){
     //temp
     setEditable(true)
+    // set solver pause to false?
+    setPause(false);
+    onPause = false
+    takeStep()
   }
 
   function createBoard() {
     //alert(props.clear)
     const board = []
+    //console.log("rerender")
     //const tileHeight = boardSize[0] / props.height;
     //const tileWidth = boardSize[1] / props.width;
     for (var i = 0; i < types.length; i++) {
@@ -116,9 +180,9 @@ function Board() {
             }
           }
           newTypes.push(row)
-          setTypes(newTypes)
-          console.log(types)
+          //console.log(types)
         }
+        setTypes(newTypes)
         
       } else {
         alert("invalid")
