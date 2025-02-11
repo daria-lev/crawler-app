@@ -31,11 +31,12 @@ function Board() {
   const [canEdit, setEditable] = useState(true)
   const [types, setTypes] = useState(defaultTypes(5, 7))
   const [pause, setPause] = useState(true)
-  const [solverSave, setSolver] = useState([0, 0, 0, 1]) //i, j, ichange, jchange (which tile to look at)
+  const [solver, setSolver] = useState([0, 0, 0, 1]) //i, j, ichange, jchange (which tile to look at)
+  const [started, setStarted] = useState(false)
   let widthVal = types[0].length
   let heightVal = types.length
-  let onPause = pause
-  let solver = solverSave
+  //let onPause = pause
+  //let solver = solverSave
 
   function childChange(i, j, type) {
     const update = [...types]
@@ -44,35 +45,75 @@ function Board() {
     //console.log(types)
   }
 
+  useEffect(() => {
+    let timer = setInterval(() => {
+      if (!pause) {
+        //setCount((oldCount) => oldCount+1)
+        takeStep()
+      }
+    }, 250);
+    return () => {clearInterval(timer)}
+  }, [pause, started, solver, types]);
+
   function handleStartClick() {
     if (types[0][0] === "bgtile" && types[types.length-1][types[0].length-1] === "bgtile") {
       console.log("start click")
       setEditable(false)
       setPause(false)
-      onPause = false
-      solver = [0, 0, 0, 1]
-      setSolver(solver)
+      setSolver([0, 0, 0, 1])
       let newTypes = [...types]
       types[0][0] = "crawler"
       setTypes(newTypes)
-      takeStep()
+      setStarted(false)
+      //takeStep()
     }
     // run solver
   }
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  async function takeStep() {
-    console.log(onPause)
-    if (!onPause) {
+//Stick in useEffect?
+//change algo to actually work
+
+  function takeStep() {
+    //console.log(onPause)
+    if (!pause) {
       console.log(solver)
-      let newX = solver[1] + solver[3] //horizontal
-      let newY = solver[0] + solver[2] // vert
+      let newX = solver[1] + solver[3] //horizontal in front of me
+      let newY = solver[0] + solver[2] // vert in front of me
+      let leftX = 1
+      let leftY = 1
+      if (solver[2] === 0) {
+        leftX = solver[1] //unchanged
+        leftY = solver[0] + solver[3]
+      } else {
+        leftX = solver[1] + (solver[2] * -1)
+        leftY = solver[0] //unchanged
+      }
       console.log("checking " + newY + " " + newX)
       console.log(newX < types[0].length)
-      if (newX < 0 || newX >= types[0].length || newY < 0 || newY >= types.length || 
+      if (leftX >= 0 && leftX < types[0].length && leftY >= 0 && leftY < types.length && 
+        types[leftY][leftX] !== "wall") { //TEMP: no wall to my left
+          let newSolver = [...solver]
+        if (newSolver[2] === 0) {
+          newSolver[3] = 0
+          newSolver[2] = solver[3]
+        } else {
+          newSolver[2] = 0
+          newSolver[3] = solver[2] * -1
+        }
+        newSolver[0] = newSolver[0] + newSolver[2]
+        newSolver[1] = newSolver[1] + newSolver[3]
+        let newTypes = [...types]
+        newTypes[solver[0]][solver[1]] = "seen"
+        newTypes[newSolver[0]][newSolver[1]] = "crawler"
+        //solver = newSolver
+        setSolver(newSolver)
+        setTypes(newTypes)
+      }
+      else if (newX < 0 || newX >= types[0].length || newY < 0 || newY >= types.length || 
             types[solver[0]+solver[2]][solver[1]+solver[3]] === "wall") {
-        // turn
+        // wall in front of me; turn right
         console.log("turn")
         let newSolver = [...solver]
         if (newSolver[2] === 0) {
@@ -82,55 +123,63 @@ function Board() {
           newSolver[2] = 0
           newSolver[3] = solver[2]
         }
-        solver = newSolver
+        //solver = newSolver
         setSolver(newSolver)
-      } else {
-        // step
+      } else { 
+        // wall or edge to my left, step forward
         console.log("move")
         let newTypes = [...types]
         newTypes[solver[0]][solver[1]] = "seen"
         newTypes[solver[0]+solver[2]][solver[1]+solver[3]] = "crawler"
-        solver = [solver[0]+solver[2], solver[1]+solver[3], solver[2], solver[3]]
-        setSolver(solver)
+        setSolver([solver[0]+solver[2], solver[1]+solver[3], solver[2], solver[3]])
         setTypes(newTypes)
       }
-      if (solver[0] === 0 && solver[1] === 0 && solver[2] === 0 && solver[3] === 1) {
+
+      setStarted(true)
+      if (solver[0] === 0 && solver[1] === 0 && solver[2] === 0 && solver[3] === 1 && started) {
         console.log("at start")
         setPause(true) // back at start?
+        setStarted(false)
       }
       else if (solver[0] === types.length-1 && solver[1] === types[0].length-1) {
         console.log("at end")
         setPause(true) // at end
-      }
-      else {
-        //console.log("waiting")
-        await sleep(1000)
-        takeStep();
-      }      
+        setStarted(false)
+      }   
     }
   }
 
   function handleClearClick() {
     setEditable(true)
     setPause(true)
-    onPause = true
     setTypes(defaultTypes(types.length, types[0].length))
   }
 
+  function handleClearSolverClick() {
+    setEditable(true)
+    setPause(true)
+    setTypes(clearSolver())
+  }
+
+  function clearSolver() {
+    let newTypes = [...types]
+    for (let i = 0; i < types.length; i++) {
+      for (let j = 0; j < types[0].length; j++) {
+        if (newTypes[i][j] === "seen" || newTypes[i][j] === "crawler") {
+          newTypes[i][j] = "bgtile"
+        }
+      }
+    }
+    return newTypes
+  }
+
   function handlePauseClick() {
-    // set solver pause to true?
     setPause(true);
-    onPause = true
-    console.log("pause clicked " + onPause)
   }
 
   function handleContinueClick(){
-    //temp
     setEditable(true)
-    // set solver pause to false?
     setPause(false);
-    onPause = false
-    takeStep()
   }
 
   function createBoard() {
@@ -209,6 +258,7 @@ function Board() {
         <button className='buttonSet' onClick={handlePauseClick}>Pause</button>
         <button className='buttonSet' onClick={handleContinueClick}>Continue</button>
         <button className='buttonSet' onClick={handleClearClick}>Clear Board</button>
+        <button className='buttonSet' onClick={handleClearSolverClick}>Clear Solver</button>
       </div>
       {createBoard()}
       <div className="p-3">
