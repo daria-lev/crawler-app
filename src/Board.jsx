@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { use } from 'react';
 
 function Tile(props) {
   const [type, setType] = useState("bgtile");
@@ -33,6 +34,7 @@ function Board() {
   const [pause, setPause] = useState(true)
   const [solver, setSolver] = useState([0, 0, 0, 1]) //i, j, ichange, jchange (which tile to look at)
   const [started, setStarted] = useState(false)
+  const [error, setError] = useState("")
   let widthVal = types[0].length
   let heightVal = types.length
   //let onPause = pause
@@ -70,7 +72,7 @@ function Board() {
     // run solver
   }
 
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  
 
 //Stick in useEffect?
 //change algo to actually work
@@ -232,9 +234,10 @@ function Board() {
           //console.log(types)
         }
         setTypes(newTypes)
+        setError("")
         
       } else {
-        alert("invalid")
+        setError("Width should be between 4 and 20. Height should be between 3 and 10.")
       }
     }
   }
@@ -253,7 +256,7 @@ function Board() {
 
   return (
     <div>
-      <div>
+      <div style={{margin: '10px'}}>
         <button className='buttonSet' onClick={handleStartClick}>Solve Maze</button>
         <button className='buttonSet' onClick={handlePauseClick}>Pause</button>
         <button className='buttonSet' onClick={handleContinueClick}>Continue</button>
@@ -261,15 +264,18 @@ function Board() {
         <button className='buttonSet' onClick={handleClearSolverClick}>Clear Solver</button>
       </div>
       {createBoard()}
-      <div className="p-3">
+      <div className="p-3" style={{margin: '10px'}}>
         <label className='inputLabel'>Width:</label>
-        <input type="number" min="4" step="1" onChange={e=>onWidthChange(e.target.value)} 
+        <input type="number" min="4" max="20" step="1" onChange={e=>onWidthChange(e.target.value)} 
           defaultValue={types[0].length}></input> 
         <label className='inputLabel'>Height:</label>
-        <input type="number" min="3" step="1" onChange={e=>onHeightChange(e.target.value)} 
+        <input type="number" min="3" max="10" step="1" onChange={e=>onHeightChange(e.target.value)} 
           defaultValue={types.length}></input>
       </div>
       <button style={{margin: '10px'}} onClick={handleSizeClick}>Update Board Size</button>
+      <div>
+      <text className='error'>{error}</text>
+      </div>
     </div>
   );
 

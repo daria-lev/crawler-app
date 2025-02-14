@@ -34,6 +34,11 @@
   background-color: lightyellow;
 }
 
+.error {
+  color: red;
+  font-size: 5;
+}
+
 .inputLabel {
   margin-left: 10px;
   margin-right: 5px;
